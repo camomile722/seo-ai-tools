@@ -46,6 +46,9 @@ const Home: NextPage = () => {
         },
     ];
 
+    const wordCount = (text: string) => {
+        return text.split(" ").length;
+    };
     const extractKeywords = async (text: string) => {
         setLoading(true);
 
@@ -99,7 +102,7 @@ const Home: NextPage = () => {
                     text +
                     "\n\nEnglish:",
                 temperature: 0.5, // higher temperature, the API will generate more creative and diverse responses
-                max_tokens: 600, //maximum number of tokens or words that the API will return.
+                max_tokens: 1000, //maximum number of tokens or words that the API will return.
                 top_p: 1.0, //control the diversity of the returned text.
                 frequency_penalty: 0.8, //if you set a higher value for "frequency penalty," the API will be more likely to avoid being repetitive.
                 presence_penalty: 0.0,
@@ -132,7 +135,7 @@ const Home: NextPage = () => {
                 model: "text-davinci-003",
                 prompt: "Summerize this text " + ":\n\n" + text,
                 temperature: 0.5, // higher temperature, the API will generate more creative and diverse responses
-                max_tokens: 600, //maximum number of tokens or words that the API will return.
+                max_tokens: 1000, //maximum number of tokens or words that the API will return.
                 top_p: 1.0, //control the diversity of the returned text.
                 frequency_penalty: 0.8, //if you set a higher value for "frequency penalty," the API will be more likely to avoid being repetitive.
                 presence_penalty: 0.0,
@@ -161,6 +164,15 @@ const Home: NextPage = () => {
                 isClosable: false,
             } as any);
             return;
+        } else if (wordCount(text) > 1000) {
+            toast({
+                title: "Text is too long",
+                description: "Please enter a text with less than 1000 words",
+                status: "error",
+                duration: 5000,
+                isClosable: false,
+            } as any);
+            return;
         }
         extractKeywords(text);
     };
@@ -180,6 +192,16 @@ const Home: NextPage = () => {
                 duration: 5000,
                 isClosable: false,
             } as any);
+
+            return;
+        } else if (wordCount(textToTranslate) > 1000) {
+            translateToast({
+                title: "Text is too long",
+                description: "Please enter a text with less than 1000 words",
+                status: "error",
+                duration: 5000,
+                isClosable: false,
+            } as any);
             return;
         }
 
@@ -190,6 +212,15 @@ const Home: NextPage = () => {
         if (textToSummerize === "") {
             summerizeToast({
                 title: "No text to summerize",
+                status: "error",
+                duration: 5000,
+                isClosable: false,
+            } as any);
+            return;
+        } else if (wordCount(textToSummerize) > 1000) {
+            summerizeToast({
+                title: "Text is too long",
+                description: "Please enter a text with less than 1000 words",
                 status: "error",
                 duration: 5000,
                 isClosable: false,
