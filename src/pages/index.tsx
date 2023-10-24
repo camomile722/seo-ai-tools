@@ -6,6 +6,7 @@ import Footer from "src/components/Footer";
 import { useState } from "react";
 import Wrapper from "src/components/Wrapper";
 import { CustomAiInput } from "src/components/CustomAiInput";
+import { selectLangOptions } from "src/utils/options";
 
 const Home: NextPage = () => {
     const [keywords, setKeywords] = useState<string[]>([]);
@@ -21,30 +22,6 @@ const Home: NextPage = () => {
     const toast = useToast();
     const translateToast = useToast();
     const summerizeToast = useToast();
-
-    const selectLangOptions = [
-        { value: "", label: "Select Language" },
-        {
-            value: "English",
-            label: "English",
-        },
-        {
-            value: "German",
-            label: "German",
-        },
-        {
-            value: "French",
-            label: "French",
-        },
-        {
-            value: "Spanish",
-            label: "Spanish",
-        },
-        {
-            value: "Italian",
-            label: "Italian",
-        },
-    ];
 
     const wordCount = (text: string) => {
         return text.split(" ").length;
