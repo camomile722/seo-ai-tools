@@ -1,12 +1,17 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { Box, Flex, useToast } from "@chakra-ui/react";
+import { Box, Flex, useToast, UseToastOptions } from "@chakra-ui/react";
 import Header from "src/components/Header";
 import Footer from "src/components/Footer";
 import { useState } from "react";
 import Wrapper from "src/components/Wrapper";
 import { CustomAiInput } from "src/components/CustomAiInput";
 import { selectLangOptions } from "src/utils/options";
+import {
+    extractKeywords,
+    summerizeText,
+    translateText,
+} from "src/utils/functions";
 
 const Home: NextPage = () => {
     const [keywords, setKeywords] = useState<string[]>([]);
@@ -26,185 +31,129 @@ const Home: NextPage = () => {
     const wordCount = (text: string) => {
         return text.split(" ").length;
     };
-    const extractKeywords = async (text: string) => {
-        setLoading(true);
-
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API}`,
-            },
-            body: JSON.stringify({
-                model: "text-davinci-003",
-                prompt:
-                    "Extract keywords from this text. Make the first letter of every word uppercase and separate with commas:\n\n" +
-                    text +
-                    "",
-                temperature: 0.5, // higher temperature, the API will generate more creative and diverse responses
-                max_tokens: 60, //maximum number of tokens or words that the API will return.
-                top_p: 1.0, //control the diversity of the returned text.
-                frequency_penalty: 0.8, //if you set a higher value for "frequency penalty," the API will be more likely to avoid being repetitive.
-                presence_penalty: 0.0,
-            }),
-        };
-        try {
-            const res = await fetch(
-                process.env.NEXT_PUBLIC_OPENAI_URL as string,
-                options
-            );
-            const json = await res.json();
-            const data = json.choices[0].text.trim();
-            setKeywords(data);
-            setLoading(false);
-        } catch (e) {
-            console.log(e);
-        }
-    };
-    const translate = async (text: string, lang: string) => {
-        setLoadingTranslate(true);
-
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API}`,
-            },
-            body: JSON.stringify({
-                model: "text-davinci-003",
-                prompt:
-                    "Translate this text to " +
-                    lang +
-                    ":\n\n" +
-                    text +
-                    "\n\nEnglish:",
-                temperature: 0.5, // higher temperature, the API will generate more creative and diverse responses
-                max_tokens: 1000, //maximum number of tokens or words that the API will return.
-                top_p: 1.0, //control the diversity of the returned text.
-                frequency_penalty: 0.8, //if you set a higher value for "frequency penalty," the API will be more likely to avoid being repetitive.
-                presence_penalty: 0.0,
-            }),
-        };
-
-        try {
-            const res = await fetch(
-                process.env.NEXT_PUBLIC_OPENAI_URL as string,
-                options
-            );
-            const json = await res.json();
-            const data = json.choices[0].text.trim();
-            setTranslation(data);
-            setLoadingTranslate(false);
-        } catch (e) {
-            console.log(e);
-        }
-    };
-    const summerize = async (text: string) => {
-        setLoadingSummerize(true);
-
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API}`,
-            },
-            body: JSON.stringify({
-                model: "text-davinci-003",
-                prompt: "Summerize this text " + ":\n\n" + text,
-                temperature: 0.5, // higher temperature, the API will generate more creative and diverse responses
-                max_tokens: 1000, //maximum number of tokens or words that the API will return.
-                top_p: 1.0, //control the diversity of the returned text.
-                frequency_penalty: 0.8, //if you set a higher value for "frequency penalty," the API will be more likely to avoid being repetitive.
-                presence_penalty: 0.0,
-            }),
-        };
-
-        try {
-            const res = await fetch(
-                process.env.NEXT_PUBLIC_OPENAI_URL as string,
-                options
-            );
-            const json = await res.json();
-            const data = json.choices[0].text.trim();
-            setSummerizedText(data);
-            setLoadingSummerize(false);
-        } catch (e) {
-            console.log(e);
-        }
-    };
-    const submitText = () => {
-        if (text === "") {
-            toast({
-                title: "No text to extract keywords from",
-                status: "error",
-                duration: 5000,
-                isClosable: false,
-            } as any);
-            return;
-        } else if (wordCount(text) > 1000) {
-            toast({
+    const chekIfTextIsTooLong = (
+        text: string,
+        toastName: (options: UseToastOptions) => void
+    ) => {
+        if (wordCount(text) > 1000) {
+            toastName({
                 title: "Text is too long",
                 description: "Please enter a text with less than 1000 words",
                 status: "error",
                 duration: 5000,
                 isClosable: false,
-            } as any);
+            } as UseToastOptions);
             return;
         }
-        extractKeywords(text);
     };
-    const submitTextToTranslate = () => {
-        if (textToTranslate === "") {
-            translateToast({
-                title: "No text to translate",
+
+    const checkIfTextIsEmpty = (
+        text: string,
+        toastName: (options: UseToastOptions) => void
+    ) => {
+        if (text === "") {
+            toastName({
+                title: "Please enter a text",
                 status: "error",
                 duration: 5000,
                 isClosable: false,
-            } as any);
+            } as UseToastOptions);
             return;
-        } else if (targetLanguage === "") {
+        }
+    };
+
+    const handleKeywordExtraction = async () => {
+        if (text === "") {
+            checkIfTextIsEmpty(text, toast);
+            return;
+        }
+
+        if (wordCount(text) > 1000) {
+            chekIfTextIsTooLong(text, toast);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const extractedKeywords = await extractKeywords(text);
+            setKeywords(extractedKeywords);
+        } catch (error) {
+            toast({
+                title: "Error extracting keywords",
+                status: "error",
+                duration: 5000,
+                isClosable: false,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleTranslation = async () => {
+        if (textToTranslate === "") {
+            checkIfTextIsEmpty(textToTranslate, translateToast);
+            return;
+        }
+
+        if (wordCount(textToTranslate) > 1000) {
+            chekIfTextIsTooLong(textToTranslate, translateToast);
+            return;
+        }
+
+        if (targetLanguage === "") {
             translateToast({
                 title: "No language selected",
                 status: "error",
                 duration: 5000,
                 isClosable: false,
-            } as any);
-
-            return;
-        } else if (wordCount(textToTranslate) > 1000) {
-            translateToast({
-                title: "Text is too long",
-                description: "Please enter a text with less than 1000 words",
-                status: "error",
-                duration: 5000,
-                isClosable: false,
-            } as any);
+            } as UseToastOptions);
             return;
         }
 
-        translate(textToTranslate, targetLanguage);
+        try {
+            setLoadingTranslate(true);
+            const translatedText = await translateText(
+                textToTranslate,
+                targetLanguage
+            );
+            setTranslation(translatedText);
+        } catch (error) {
+            toast({
+                title: "Error translating text",
+                status: "error",
+                duration: 5000,
+                isClosable: false,
+            });
+        } finally {
+            setLoadingTranslate(false);
+        }
     };
 
-    const submitTextSummerize = () => {
+    const handleSummerization = async () => {
         if (textToSummerize === "") {
-            summerizeToast({
-                title: "No text to summerize",
-                status: "error",
-                duration: 5000,
-                isClosable: false,
-            } as any);
-            return;
-        } else if (wordCount(textToSummerize) > 1000) {
-            summerizeToast({
-                title: "Text is too long",
-                description: "Please enter a text with less than 1000 words",
-                status: "error",
-                duration: 5000,
-                isClosable: false,
-            } as any);
+            checkIfTextIsEmpty(textToSummerize, summerizeToast);
             return;
         }
-        summerize(textToSummerize);
+
+        if (wordCount(textToSummerize) > 1000) {
+            chekIfTextIsTooLong(textToSummerize, summerizeToast);
+            return;
+        }
+
+        try {
+            setLoadingSummerize(true);
+            const summarized = await summerizeText(textToSummerize);
+            setSummerizedText(summarized);
+        } catch (error) {
+            toast({
+                title: "Error summarizing text",
+                status: "error",
+                duration: 5000,
+                isClosable: false,
+            });
+        } finally {
+            setLoadingSummerize(false);
+        }
     };
     return (
         <>
@@ -219,7 +168,7 @@ const Home: NextPage = () => {
                     <Wrapper>
                         <Flex flexDir="column" gap={10}>
                             <CustomAiInput
-                                handleSubmit={submitText}
+                                handleSubmit={handleKeywordExtraction}
                                 title="AI Keyword Extractor"
                                 loading={loading}
                                 tooltip="Paste in your text below and we'll extract the keywords for you"
@@ -230,7 +179,7 @@ const Home: NextPage = () => {
                             />
 
                             <CustomAiInput
-                                handleSubmit={submitTextToTranslate}
+                                handleSubmit={handleTranslation}
                                 title="AI Translator"
                                 loading={loadingTranslate}
                                 tooltip="Paste in your text below and we'll translate it for you"
@@ -244,7 +193,7 @@ const Home: NextPage = () => {
                             />
 
                             <CustomAiInput
-                                handleSubmit={submitTextSummerize}
+                                handleSubmit={handleSummerization}
                                 title="Summerize Text"
                                 loading={loadingSummerize}
                                 tooltip="Paste in your text below and we'll summerize it for you"
