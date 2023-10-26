@@ -1,8 +1,5 @@
 import type { NextPage } from "next";
-import Head from "next/head";
 import { Box, Flex, useToast, UseToastOptions } from "@chakra-ui/react";
-import Header from "src/components/Header";
-import Footer from "src/components/Footer";
 import { useState } from "react";
 import Wrapper from "src/components/Wrapper";
 import { CustomAiInput } from "src/components/CustomAiInput";
@@ -12,6 +9,7 @@ import {
     summerizeText,
     translateText,
 } from "src/utils/functions";
+import { Layout } from "src/components/Layout";
 
 const Home: NextPage = () => {
     const [keywords, setKeywords] = useState<string[]>([]);
@@ -31,6 +29,7 @@ const Home: NextPage = () => {
     const wordCount = (text: string) => {
         return text.split(" ").length;
     };
+
     const chekIfTextIsTooLong = (
         text: string,
         toastName: (options: UseToastOptions) => void
@@ -156,58 +155,49 @@ const Home: NextPage = () => {
         }
     };
     return (
-        <>
-            <Box bg="teal.50">
-                <Head>
-                    <title>SEO AI Tool</title>
-                    <meta name="description" content="Next template" />
-                    <link rel="icon" href="/public/favicon.ico" />
-                </Head>
-                <Header />
-                <Box maxW="1440px" margin="0 auto">
-                    <Wrapper>
-                        <Flex flexDir="column" gap={10}>
-                            <CustomAiInput
-                                handleSubmit={handleKeywordExtraction}
-                                title="AI Keyword Extractor"
-                                loading={loading}
-                                tooltip="Paste in your text below and we'll extract the keywords for you"
-                                value={text}
-                                setValue={setText}
-                                result={keywords}
-                                buttonLabel="Extract Keywords"
-                            />
+        <Box bg="teal.50">
+            <Layout metaTitle="SEO AI Tool" metaDescription="SEO AI Tool">
+                <Wrapper>
+                    <Flex flexDir="column" gap={10}>
+                        <CustomAiInput
+                            handleSubmit={handleKeywordExtraction}
+                            title="AI Keyword Extractor"
+                            loading={loading}
+                            tooltip="Paste in your text below and we'll extract the keywords for you"
+                            value={text}
+                            setValue={setText}
+                            result={keywords}
+                            buttonLabel="Extract Keywords"
+                        />
 
-                            <CustomAiInput
-                                handleSubmit={handleTranslation}
-                                title="AI Translator"
-                                loading={loadingTranslate}
-                                tooltip="Paste in your text below and we'll translate it for you"
-                                value={textToTranslate}
-                                setValue={setTextToTranslate}
-                                result={translation}
-                                buttonLabel="Translate"
-                                select
-                                selectOptions={selectLangOptions}
-                                onSelectChange={(e) => setLang(e.target.value)}
-                            />
+                        <CustomAiInput
+                            handleSubmit={handleTranslation}
+                            title="AI Translator"
+                            loading={loadingTranslate}
+                            tooltip="Paste in your text below and we'll translate it for you"
+                            value={textToTranslate}
+                            setValue={setTextToTranslate}
+                            result={translation}
+                            buttonLabel="Translate"
+                            select
+                            selectOptions={selectLangOptions}
+                            onSelectChange={(e) => setLang(e.target.value)}
+                        />
 
-                            <CustomAiInput
-                                handleSubmit={handleSummerization}
-                                title="Summerize Text"
-                                loading={loadingSummerize}
-                                tooltip="Paste in your text below and we'll summerize it for you"
-                                value={textToSummerize}
-                                setValue={setTextToSummerize}
-                                result={summerizedText}
-                                buttonLabel="Summerize"
-                            />
-                        </Flex>
-                    </Wrapper>
-                </Box>
-                <Footer />
-            </Box>
-        </>
+                        <CustomAiInput
+                            handleSubmit={handleSummerization}
+                            title="Summerize Text"
+                            loading={loadingSummerize}
+                            tooltip="Paste in your text below and we'll summerize it for you"
+                            value={textToSummerize}
+                            setValue={setTextToSummerize}
+                            result={summerizedText}
+                            buttonLabel="Summerize"
+                        />
+                    </Flex>
+                </Wrapper>
+            </Layout>
+        </Box>
     );
 };
 

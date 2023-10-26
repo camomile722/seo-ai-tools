@@ -1,7 +1,6 @@
 import {
     Button,
     Textarea,
-    useToast,
     Box,
     Text,
     Tooltip,
@@ -9,7 +8,6 @@ import {
     CircularProgress,
     Select,
 } from "@chakra-ui/react";
-import { useState } from "react";
 import { Question } from "src/theme/icons";
 
 export interface CustomAiInputProps {

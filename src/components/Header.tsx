@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Image, Text } from "@chakra-ui/react";
+import { Flex, Image, Text } from "@chakra-ui/react";
 import React from "react";
 
 function Header() {
@@ -10,6 +10,7 @@ function Header() {
                 boxShadow="md"
                 justifyContent="center"
                 gap="4"
+                as="header"
             >
                 <Image src="/images/chatgpt-logo.png" width="50px" />
                 <Text as="h1" fontSize={{ base: "2xl", md: "4xl" }}>
